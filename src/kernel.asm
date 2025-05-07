@@ -1,5 +1,6 @@
 [BITS 32]
 global _start
+extern kernel_start
 
 CODE_SEG equ 0x08
 DATA_SEG equ 0x10
@@ -20,4 +21,8 @@ _start:
     or al, 2
     out 0x92, al
 
+    call kernel_start
+
     jmp $
+
+times 512-($ - $$) db 0 ;alignment
