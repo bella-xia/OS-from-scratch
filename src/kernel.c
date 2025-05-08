@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include "kernel.h"
 #include "idt/idt.h"
+#include "io/io.h"
 
 uint16_t terminal_row, terminal_col, *video_mem;
 
@@ -48,14 +49,11 @@ void print(const char *str) {
         terminal_writechar(str[i], 15);
 }
 
-
-extern void problem();
-
 void kernel_main() {
     terminal_initialize();
     print("Hello world!\ntest");
 
     idt_init();
 
-    problem();
+
 }
