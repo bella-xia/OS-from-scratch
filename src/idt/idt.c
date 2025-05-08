@@ -8,6 +8,7 @@ struct idt_desc idt_descriptors[PEACHOS_TOTAL_INTERRUPTS];
 struct idtr_desc idtr_descriptor;
 
 extern void idt_load(struct idtr_desc *ptr);
+extern void isr0(void);
 
 void idt_zero() {
     print("divided by zero error\n");
@@ -27,7 +28,7 @@ void idt_init() {
     idtr_descriptor.limit = sizeof(idt_descriptors) - 1;
     idtr_descriptor.base = (uint32_t) idt_descriptors;
 
-    idt_set(0, idt_zero);
+    idt_set(0, isr0);
 
     // load the interrupt descriptor table
     idt_load(&idtr_descriptor);
