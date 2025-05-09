@@ -5,6 +5,7 @@
 #include "io/io.h"
 #include "memory/kheap.h"
 #include "memory/paging.h"
+#include "disk/disk.h"
 
 uint16_t terminal_row, terminal_col, *video_mem;
 static struct paging_4gb_chunk *kernel_chunk;
@@ -58,19 +59,14 @@ void kernel_main() {
 
     kheap_init();
 
+    disk_search_and_init();
+
     idt_init();
 
     kernel_chunk = paging_new_4gb(PAGING_IS_WRITEABLE | PAGING_IS_PRESENT | PAGING_ACCESS_FROM_ALL);
     paging_switch(kernel_chunk->directory_entry);
-    char *ptr = (char *)palloc_get_page();
-    paging_set(kernel_chunk->directory_entry, (void *) 0x1000, (uint32_t)ptr | PAGING_ACCESS_FROM_ALL | PAGING_IS_PRESENT | PAGING_IS_WRITEABLE);
     
     enable_paging();
-    char *ptr2 = (char *)0x1000;
-    ptr2[0] = 'A';
-    ptr2[1] = 'B';
-    print(ptr2);
-    print(ptr);
 
     enable_interrupts();
 
