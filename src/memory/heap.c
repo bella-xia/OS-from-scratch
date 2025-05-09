@@ -62,20 +62,16 @@ int heap_get_start_block(struct heap* heap, uint32_t block) {
 
     for (size_t i = 0; i < table->total; i++) {
         if (heap_get_entry_type(table->entries[i]) != HEAP_BLOCK_TABLE_ENTRY_FREE) {
-            print("block not free. continue searching ...\n");
             bc = 0;
             bs = -1;
             continue;
         }
-        print("found free block\n");
 
         if (bs == -1) 
             bs = i;
         
-        if (++bc == block) {
-            print("found sufficient block");
+        if (++bc == block)
             break;
-        }
     }
     return (bs == -1) ? -ENOMEM : bs;
 }

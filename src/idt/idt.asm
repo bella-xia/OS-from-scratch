@@ -10,6 +10,8 @@ global isr0
 global isr20
 global isr21
 global no_interrupt
+global enable_interrupts
+global disable_interrupts
 
 isr0:
     cli
@@ -34,6 +36,14 @@ isr20:
     popad
     sti
     iret
+
+enable_interrupts:
+    sti
+    ret
+
+disable_interrupts:
+    cli
+    ret
 
 idt_load:
     push ebp

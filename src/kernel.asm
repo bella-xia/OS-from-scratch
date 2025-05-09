@@ -28,7 +28,6 @@ _start:
     out 0x21, al
     mov al, 00000001b
     out 0x21, al
-    sti
 
     call kernel_main
 
