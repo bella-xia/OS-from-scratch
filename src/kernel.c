@@ -8,6 +8,8 @@
 #include "disk/disk.h"
 #include "disk/streamer.h"
 #include "fs/pparser.h"
+#include "string/string.h"
+#include "fs/fat16.h"
 
 uint16_t terminal_row, terminal_col, *video_mem;
 static struct paging_4gb_chunk *kernel_chunk;
@@ -58,6 +60,7 @@ void print(const char *str) {
 void kernel_main() {
 
     kheap_init();
+    fs_init();
 
     disk_search_and_init();
 
@@ -70,10 +73,7 @@ void kernel_main() {
 
     enable_interrupts();
 
-    struct disk_stream *streamer = diskstreamer_new(0);
-    diskstreamer_seek(streamer, 0x201);
-    unsigned char c = 0;
-    diskstreamer_read(streamer, &c, 1);
-    while (1);
+    char buf[20];
+    strcpy(buf, "hello!");
 
 }

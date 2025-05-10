@@ -38,7 +38,9 @@ C_SRCS += memory/memory.c \
 ASM_SRCS += memory/paging.asm
 
 # fs and disk
-C_SRCS += fs/pparser.c \
+C_SRCS += fs/pparser.c  \
+		  fs/file.c \
+		  fs/fat16.c \
           string/string.c \
           disk/disk.c \
 		  disk/streamer.c
@@ -46,8 +48,16 @@ C_SRCS += fs/pparser.c \
 # Object files
 OBJS = $(addprefix $(BUILD_DIR)/, $(ASM_SRCS:.asm=.asm.o) $(C_SRCS:.c=.o))
 
-# Targets
 all: $(BIN_DIR)/boot.bin $(BIN_DIR)/kernel.bin
+	rm -f $(BIN_DIR)/os.bin
+	dd if=$(BIN_DIR)/boot.bin >> $(BIN_DIR)/os.bin
+	dd if=$(BIN_DIR)/kernel.bin >> $(BIN_DIR)/os.bin
+	dd if=/dev/zero bs=1M count=16 >> $(BIN_DIR)/os.bin
+	sudo mount -t vfat $(BIN_DIR)/os.bin /mnt/peachos
+	sudo cp ./hello.txt /mnt/peachos
+	sudo umount /mnt/peachos
+
+no_fs: $(BIN_DIR)/boot.bin $(BIN_DIR)/kernel.bin
 	rm -f $(BIN_DIR)/os.bin
 	dd if=$(BIN_DIR)/boot.bin >> $(BIN_DIR)/os.bin
 	dd if=$(BIN_DIR)/kernel.bin >> $(BIN_DIR)/os.bin

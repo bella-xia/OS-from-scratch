@@ -25,3 +25,13 @@ bool isdigit(char c) {
 int tonumericdigit(char c) {
     return c - 48;
 }
+
+
+char *strcpy(char *dest, const char *src) {
+    char *res = dest;
+    while (*src != 0)
+        *(dest++) = *(src++);
+    
+    *dest = 0x00;
+    return res;
+}
