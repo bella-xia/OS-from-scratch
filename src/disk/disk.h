@@ -10,7 +10,9 @@ typedef unsigned int PEACHOS_DISK_TYPE;
 struct disk {
     PEACHOS_DISK_TYPE type;
     int sector_size;
+    int id;
     struct filesystem *filesystems;
+    void *fs_private; // the private data of filesystem
 };
 
 struct disk *disk_get(int index);
