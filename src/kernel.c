@@ -6,6 +6,7 @@
 #include "memory/kheap.h"
 #include "memory/paging.h"
 #include "disk/disk.h"
+#include "fs/pparser.h"
 
 uint16_t terminal_row, terminal_col, *video_mem;
 static struct paging_4gb_chunk *kernel_chunk;
@@ -41,21 +42,21 @@ void terminal_initialize() {
     }
 }
 
-size_t strlen(const char *str) {
+size_t kstrlen(const char *str) {
     size_t len = 0;
     while (str[len++]);
     return len;
 }
 
 void print(const char *str) {
-    size_t len = strlen(str);
+    size_t len = kstrlen(str);
     for (int i = 0; i < len; i++) 
         terminal_writechar(str[i], 15);
 }
 
 void kernel_main() {
-    terminal_initialize();
-    print("Hello world!\ntest");
+    //terminal_initialize();
+    //print("Hello world!\ntest");
 
     kheap_init();
 
@@ -69,5 +70,8 @@ void kernel_main() {
     enable_paging();
 
     enable_interrupts();
+
+    struct path_root * proot = pathparser_parse("0:/bin/shell.exe", NULL);
+    if (proot);
 
 }
