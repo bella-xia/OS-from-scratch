@@ -6,6 +6,7 @@
 #include "memory/kheap.h"
 #include "memory/paging.h"
 #include "disk/disk.h"
+#include "disk/streamer.h"
 #include "fs/pparser.h"
 
 uint16_t terminal_row, terminal_col, *video_mem;
@@ -55,8 +56,6 @@ void print(const char *str) {
 }
 
 void kernel_main() {
-    //terminal_initialize();
-    //print("Hello world!\ntest");
 
     kheap_init();
 
@@ -71,7 +70,10 @@ void kernel_main() {
 
     enable_interrupts();
 
-    struct path_root * proot = pathparser_parse("0:/bin/shell.exe", NULL);
-    if (proot);
+    struct disk_stream *streamer = diskstreamer_new(0);
+    diskstreamer_seek(streamer, 0x201);
+    unsigned char c = 0;
+    diskstreamer_read(streamer, &c, 1);
+    while (1);
 
 }

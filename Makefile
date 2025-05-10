@@ -1,59 +1,73 @@
-FILES = ./build/kernel.asm.o ./build/kernel.o ./build/idt/idt.asm.o ./build/idt/idt.o ./build/memory/memory.o ./build/memory/heap.o ./build/memory/kheap.o ./build/io/io.asm.o ./build/memory/paging.o ./build/memory/paging.asm.o ./build/disk/disk.o ./build/string/string.o ./build/fs/pparser.o
-INCLUDES = -I./src
-FLAGS = -g -ffreestanding -falign-jumps -falign-functions -falign-labels -falign-loops -fstrength-reduce -fomit-frame-pointer -finline-functions -Wno-unused-function -fno-builtin -Werror -Wno-unused-label -Wno-cpp -Wno-unused-parameter -nostdlib -nostartfiles -nodefaultlibs -Wall -O0 -Iinc
+# Paths
+SRC_DIR = ./src
+BUILD_DIR = ./build
+BIN_DIR = ./bin
 
-all: ./bin/boot.bin ./bin/kernel.bin
-	rm -rf ./bin/os.bin
-	dd if=./bin/boot.bin >> ./bin/os.bin
-	dd if=./bin/kernel.bin >> ./bin/os.bin
-	dd if=/dev/zero bs=512 count=100 >> ./bin/os.bin
+# Compiler and flags
+CC = i686-elf-gcc
+AS = nasm
+LD = i686-elf-ld
+CFLAGS = -std=gnu99 -c -g -ffreestanding -Wall -O0 $(INCLUDES) $(FLAGS)
+ASFLAGS_ELF = -f elf -g
+ASFLAGS_BIN = -f bin
 
-./bin/kernel.bin: $(FILES)
-	i686-elf-ld -g -relocatable $(FILES) -o ./build/kernelfull.o
-	i686-elf-gcc -T ./src/linker.ld -o ./bin/kernel.bin -ffreestanding -O0 -nostdlib ./build/kernelfull.o
+# Include paths and GCC flags
+INCLUDES = -I./src -Iinc
+FLAGS = -ffreestanding -falign-jumps -falign-functions -falign-labels -falign-loops \
+        -fstrength-reduce -fomit-frame-pointer -finline-functions -Wno-unused-function \
+        -fno-builtin -Werror -Wno-unused-label -Wno-cpp -Wno-unused-parameter \
+        -nostdlib -nostartfiles -nodefaultlibs
+    
+#core c source file
+C_SRCS = kernel.c
+# core ASM source files (ELF)
+ASM_SRCS = kernel.asm
 
-./bin/boot.bin: ./src/boot/boot.asm
-	nasm -f bin ./src/boot/boot.asm -o ./bin/boot.bin
+# interrupt discriptor 
+C_SRCS += idt/idt.c
+ASM_SRCS += idt/idt.asm
 
-./build/kernel.asm.o: ./src/kernel.asm
-	nasm -f elf -g ./src/kernel.asm -o ./build/kernel.asm.o
+# io control
+ASM_SRCS += io/io.asm 
 
-./build/kernel.o: ./src/kernel.c
-	i686-elf-gcc $(INCLUDES) $(FLAGS) -std=gnu99 -c ./src/kernel.c -o ./build/kernel.o
+# memory and paging
+C_SRCS += memory/memory.c \
+          memory/heap.c \
+          memory/kheap.c \
+          memory/paging.c
+ASM_SRCS += memory/paging.asm
 
-./build/idt/idt.asm.o: ./src/idt/idt.asm
-	nasm -f elf -g ./src/idt/idt.asm -o ./build/idt/idt.asm.o
+# fs and disk
+C_SRCS += fs/pparser.c \
+          string/string.c \
+          disk/disk.c \
+		  disk/streamer.c
 
-./build/idt/idt.o: ./src/idt/idt.c
-	i686-elf-gcc $(INCLUDES) $(FLAGS) -std=gnu99 -c ./src/idt/idt.c -o ./build/idt/idt.o
+# Object files
+OBJS = $(addprefix $(BUILD_DIR)/, $(ASM_SRCS:.asm=.asm.o) $(C_SRCS:.c=.o))
 
+# Targets
+all: $(BIN_DIR)/boot.bin $(BIN_DIR)/kernel.bin
+	rm -f $(BIN_DIR)/os.bin
+	dd if=$(BIN_DIR)/boot.bin >> $(BIN_DIR)/os.bin
+	dd if=$(BIN_DIR)/kernel.bin >> $(BIN_DIR)/os.bin
+	dd if=/dev/zero bs=512 count=100 >> $(BIN_DIR)/os.bin
 
-./build/memory/memory.o: ./src/memory/memory.c
-	i686-elf-gcc $(INCLUDES) $(FLAGS) -std=gnu99 -c ./src/memory/memory.c -o ./build/memory/memory.o
+$(BIN_DIR)/kernel.bin: $(OBJS)
+	$(LD) -g -relocatable $(OBJS) -o $(BUILD_DIR)/kernelfull.o
+	$(CC) -T $(SRC_DIR)/linker.ld -o $@ -ffreestanding -O0 -nostdlib $(BUILD_DIR)/kernelfull.o
 
-./build/memory/heap.o: ./src/memory/heap.c
-	i686-elf-gcc $(INCLUDES) $(FLAGS) -std=gnu99 -c ./src/memory/heap.c -o ./build/memory/heap.o
+$(BIN_DIR)/boot.bin: $(SRC_DIR)/boot/boot.asm
+	$(AS) $(ASFLAGS_BIN) $< -o $@
 
-./build/memory/kheap.o: ./src/memory/kheap.c
-	i686-elf-gcc $(INCLUDES) $(FLAGS) -std=gnu99 -c ./src/memory/kheap.c -o ./build/memory/kheap.o
+# Pattern rules
+$(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) $< -o $@
 
-./build/memory/paging.asm.o: ./src/memory/paging.asm
-	nasm -f elf -g ./src/memory/paging.asm -o ./build/memory/paging.asm.o
+$(BUILD_DIR)/%.asm.o: $(SRC_DIR)/%.asm
+	@mkdir -p $(dir $@)
+	$(AS) $(ASFLAGS_ELF) $< -o $@
 
-./build/memory/paging.o: ./src/memory/paging.c
-	i686-elf-gcc $(INCLUDES) $(FLAGS) -std=gnu99 -c ./src/memory/paging.c -o ./build/memory/paging.o
-
-./build/io/io.asm.o: ./src/io/io.asm
-	nasm -f elf -g ./src/io/io.asm -o ./build/io/io.asm.o
-
-./build/disk/disk.o: ./src/disk/disk.c
-	i686-elf-gcc $(INCLUDES) $(FLAGS) -std=gnu99 -c ./src/disk/disk.c -o ./build/disk/disk.o
-
-./build/string/string.o: ./src/string/string.c
-	i686-elf-gcc $(INCLUDES) $(FLAGS) -std=gnu99 -c ./src/string/string.c -o ./build/string/string.o
-
-./build/fs/pparser.o: ./src/fs/pparser.c
-	i686-elf-gcc $(INCLUDES) $(FLAGS) -std=gnu99 -c ./src/fs/pparser.c -o ./build/fs/pparser.o
-
-clean: 
-	rm -rf ./bin/boot.bin ./bin/kernel.bin ./bin/os.bin ${FILES} ./build/kernelfull.o
+clean:
+	rm -rf $(BIN_DIR)/boot.bin $(BIN_DIR)/kernel.bin $(BIN_DIR)/os.bin ${OBJS} $(BUILD_DIR)/kernelfull.o
