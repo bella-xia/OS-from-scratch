@@ -20,3 +20,12 @@ int memcmp(void *s1, void *s2, int bound) {
     }
     return 0;
 }
+
+void *memcpy(void *dest, void *src, int len) {
+    char *d = dest, *s = src;
+
+    while (len--) {
+        *d++ = *s++;
+    }
+    return dest;
+}

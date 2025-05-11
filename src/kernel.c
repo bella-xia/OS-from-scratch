@@ -58,6 +58,8 @@ void print(const char *str) {
 }
 
 void kernel_main() {
+    terminal_initialize();
+    print("Hello world!\ntest\n");
 
     kheap_init();
     fs_init();
@@ -73,7 +75,8 @@ void kernel_main() {
 
     enable_interrupts();
 
-    char buf[20];
-    strcpy(buf, "hello!");
+    int fd = fopen("0:/hello.txt", "r");
+    if (fd) 
+        print("we openned hello.txt\n");
 
 }
