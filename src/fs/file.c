@@ -7,6 +7,7 @@
 #include "config.h"
 #include "status.h"
 #include "kernel.h"
+#include <stdint.h>
 
 struct filesystem *filesystems[PEACHOS_MAX_FILESYSTEMS];
 struct file_descriptor *file_descriptors[PEACHOS_MAX_FILEDESCRIPTORS];
@@ -157,5 +158,25 @@ out:
     // fopen should not return negative values
     if (res < 0)
         res = 0;
+    return res;
+}
+
+int fread(void *ptr, uint32_t size, uint32_t nmemb, int fd) {
+    int res = 0;
+
+    if (size == 0 || nmemb == 0 || fd < 1) {
+        res = -EIVARG;
+        goto out;
+    }
+
+    struct file_descriptor *desc = file_get_descriptor(fd);
+    if (!desc) {
+        res = -EIVARG;
+        goto out;
+    }
+
+    res = desc->filesystem->read(desc->disk, desc->privates, size, nmemb, (char *) ptr);
+
+out:
     return res;
 }
