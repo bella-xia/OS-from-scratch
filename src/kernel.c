@@ -10,6 +10,7 @@
 #include "fs/pparser.h"
 #include "string/string.h"
 #include "fs/fat16.h"
+#include "fs/file.h"
 
 uint16_t terminal_row, terminal_col, *video_mem;
 static struct paging_4gb_chunk *kernel_chunk;
@@ -76,7 +77,12 @@ void kernel_main() {
     enable_interrupts();
 
     int fd = fopen("0:/hello.txt", "r");
-    if (fd) 
+    if (fd) { 
         print("we openned hello.txt\n");
-
+        char buf[8];
+        fseek(fd, 2, SEEK_SET);
+        fread(buf, 7, 1, fd);
+        buf[7] = 0x00;
+        print(buf);
+}
 }
