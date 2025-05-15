@@ -77,12 +77,11 @@ void kernel_main() {
     enable_interrupts();
 
     int fd = fopen("0:/hello.txt", "r");
-    if (fd) { 
-        print("we openned hello.txt\n");
-        char buf[8];
-        fseek(fd, 2, SEEK_SET);
-        fread(buf, 7, 1, fd);
-        buf[7] = 0x00;
-        print(buf);
-}
+    struct file_stat s;
+    if (fd) {
+        fclose(fd);
+        print("closed file\n");
+    }
+    // fstat(fd, &s);
+    while(1);
 }
